@@ -1,0 +1,234 @@
+globals [
+  temps-croissance    ; Growth time parameter for grass
+  num-cows            ; Number of cows
+  consommation-vache  ; Amount of grass consumed by a cow
+  num-lions           ; Number of lions
+  perception-radius   ; Perception radius of lions
+]
+
+turtles-own [
+  animal-type         ; Type of the animal (e.g., "cow" or "lion")
+  prey                ; Reference to the prey being hunted (if any)
+  is-hungry?          ; Indicates if the animal is hungry
+  taille-plante       ; Grass size parameter
+]
+
+to setup
+  clear-all            ; Clears all agents and resets the world
+  set-patch-size 20   ; Sets the size of each patch to 20
+
+  ; Initialize global variables
+  set temps-croissance 10         ; Initializes the growth time parameter for grass to 10 ticks
+  set num-cows 10                 ; Initializes the number of cows to 10
+  set consommation-vache 8        ; Initializes the amount of grass consumed by a cow to 8
+  set num-lions 10                ; Initializes the number of lions to 10
+  set perception-radius 10        ; Initializes the perception radius of lions to 10
+
+  ; Set up patches
+  ask patches [
+    ifelse random-float 1 < 0.5 [ ; Randomly assigns colors (green or brown) to patches
+      set pcolor green
+    ] [
+      set pcolor brown
+    ]
+  ]
+  create-trees        ; Creates trees on the patches
+  create-cows         ; Creates cows on the patches
+  create-bull         ; Creates a bull on the patches
+  create-lions        ; Creates lions on the patches
+  create-dog          ; Creates a dog on the patches
+  reset-ticks         ; Resets the tick counter to 0
+end
+
+to create-trees
+  create-turtles 25 [  ; Creates 25 trees with the following properties
+    set shape "tree"   ; Sets the shape of the tree turtle to "tree"
+    set color 62      ; Sets the color of the tree turtle to a specific shade of green
+    set size 1.5       ; Sets the size of the tree turtle
+    setxy random-xcor random-ycor ; Sets the random coordinates of the tree turtle
+  ]
+end
+
+to create-lions
+  create-turtles num-lions [ ; Creates a specified number of lions with the following properties
+    set shape "wolf"       ; Sets the shape of the lion turtle to "wolf"
+    set animal-type "lion" ; Assigns the animal type of the lion turtle as "lion"
+    set color red          ; Sets the color of the lion turtle to red
+    set size 2             ; Sets the size of the lion turtle
+    setxy random-xcor random-ycor ; Sets the random coordinates of the lion turtle
+  ]
+end
+
+to create-cows
+  create-turtles num-cows [ ; Creates a specified number of cows with the following properties
+    set shape "cow"        ; Sets the shape of the cow turtle to "cow"
+    set animal-type "cow"  ; Assigns the animal type of the cow turtle as "cow"
+    set color 139          ; Sets the color of the cow turtle to a specific shade of brown
+    set size 2             ; Sets the size of the cow turtle
+    setxy random-xcor random-ycor ; Sets the random coordinates of the cow turtle
+    set taille-plante (random 5) + 5  ; Sets a random initial grass size parameter for cows
+  ]
+end
+
+to create-bull
+  create-turtles 1 [      ; Creates 1 bull with the following properties
+    set shape "moose"    ; Sets the shape of the bull turtle to "moose"
+    set animal-type "bull" ; Assigns the animal type of the bull turtle as "bull"
+    set color 1           ; Sets the color of the bull turtle to black
+    set size 2            ; Sets the size of the bull turtle
+    setxy random-xcor random-ycor ; Sets the random coordinates of the bull turtle
+  ]
+end
+
+to create-dog
+  create-turtles 1 [      ; Creates 1 dog with the following properties
+    set shape "dog"       ; Sets the shape of the dog turtle to "dog"
+    set animal-type "dog" ; Assigns the animal type of the dog turtle as "dog"
+    set color 25          ; Sets the color of the dog turtle to a specific shade of blue
+    set size 1.2          ; Sets the size of the dog turtle
+    setxy random-xcor random-ycor ; Sets the random coordinates of the dog turtle
+  ]
+end
+
+
+to go
+  tick                 ; Proceeds to the next tick in the simulation
+  move-animals         ; Calls the move-animals procedure to move animals
+  update-grass         ; Calls the update-grass procedure to update the grass patches
+  dog-lion-interaction ; Calls the dog-lion-interaction procedure to handle interactions between dogs and lions
+end
+
+to move-animals
+  move-bull            ; Calls the move-bull procedure to move the bull
+  ask turtles [        ; Asks all turtles to perform the following actions
+    ifelse animal-type = "cow" [ ; Checks if the turtle is a cow
+      move-cows         ; Calls the move-cows procedure to move the cow
+      eat-grass         ; Calls the eat-grass procedure to let the cow eat grass
+    ] [
+      ifelse animal-type = "lion" [ ; Checks if the turtle is a lion
+        move-lion       ; Calls the move-lion procedure to move the lion
+        hunt-prey       ; Calls the hunt-prey procedure to let the lion hunt for prey
+      ] [
+        if animal-type = "dog" [ ; Checks if the turtle is a dog
+          move-dog       ; Calls the move-dog procedure to move the dog
+        ]
+      ]
+    ]
+  ]
+end
+
+to move-dog
+  ask turtles with [animal-type = "dog"] [ ; Asks all turtles of type "dog" to perform the following actions
+    rt random 90       ; Rotates the turtle to the right by a random angle (maximum 90 degrees)
+    lt random 90       ; Rotates the turtle to the left by a random angle (maximum 90 degrees)
+    fd 1               ; Moves the turtle forward by 1 step
+  ]
+end
+
+to dog-lion-interaction
+  ask turtles with [animal-type = "dog"] [ ; Asks all turtles of type "dog" to perform the following actions
+    let lions-in-range other turtles-here with [animal-type = "lion"] ; Finds all lions within the dog's range
+    if any? lions-in-range [              ; Checks if there are any lions in range
+      let target min-one-of lions-in-range [distance myself] ; Finds the nearest lion
+      print (word "Dog found lion " who " at distance " distance target) ; Prints a message about the detected lion
+      if any? turtles with [who = [who] of target] [ ; Checks if the target lion still exists
+        print "Target lion still exists!"    ; Prints a message indicating the target lion still exists
+        dog-fight target                     ; Calls the dog-fight procedure with the target lion as an argument
+      ]
+    ]
+  ]
+end
+
+to dog-fight [target-lion]
+  let fight-outcome random-float 1      ; Generates a random number between 0 and 1
+  print (word "Dog fight outcome: " fight-outcome) ; Prints the outcome of the dog fight
+  if fight-outcome <= 0.9 [              ; Checks if the fight outcome is less than or equal to 0.9 (90% chance)
+    ask target-lion [                   ; Asks the target lion to perform the following actions
+      die                               ; Kills the target lion
+      set shape "skull"                 ; Changes the shape of the target lion to "skull"
+      print (word "Dog won! Lion " who " died.") ; Prints a message indicating the dog won the fight
+    ]
+  ]
+end
+
+to move-cows
+  ask turtles with [animal-type = "cow"] [  ; Asks all turtles of type "cow" to perform the following actions
+    let nearby-cows other turtles with [animal-type = "cow"] in-radius 3 ; Finds nearby cows within a radius of 3 patches
+    let bull one-of turtles with [animal-type = "bull"] ; Finds the bull
+    let group-members (turtle-set nearby-cows bull)       ; Creates a group of nearby cows and the bull
+
+    if any? group-members [                  ; Checks if there are any group members
+      let sum-xcor sum [xcor] of group-members ; Calculates the sum of x-coordinates of group members
+      let sum-ycor sum [ycor] of group-members ; Calculates the sum of y-coordinates of group members
+      let count-group count group-members     ; Counts the number of group members
+      let center-of-mass patch (sum-xcor / count-group) (sum-ycor / count-group) ; Calculates the center of mass of the group
+      face center-of-mass                    ; Faces towards the center of mass
+      fd 1                                    ; Moves forward by 1 step
+    ]
+  ]
+end
+
+to move-lion
+  ask turtles with [animal-type = "lion"] [ ; Asks all turtles of type "lion" to perform the following actions
+    rt random 90      ; Rotates the turtle to the right by a random angle (maximum 90 degrees)
+    lt random 90      ; Rotates the turtle to the left by a random angle (maximum 90 degrees)
+    fd 1              ; Moves the turtle forward by 1 step
+  ]
+end
+
+to move-bull
+  ask turtles with [animal-type = "bull"] [ ; Asks all turtles of type "bull" to perform the following actions
+    rt random 90      ; Rotates the turtle to the right by a random angle (maximum 90 degrees)
+    lt random 90      ; Rotates the turtle to the left by a random angle (maximum 90 degrees)
+    fd 1              ; Moves the turtle forward by 1 step
+  ]
+end
+
+to eat-grass
+  ask turtles with [animal-type = "cow"] [ ; Asks all turtles of type "cow" to perform the following actions
+    if pcolor = green [            ; Checks if the patch color is green
+      set pcolor brown             ; Sets the patch color to brown
+      set taille-plante (taille-plante - consommation-vache) ; Reduces the grass size parameter by the amount consumed by a cow
+    ]
+  ]
+end
+
+to hunt-prey
+  ask turtles with [animal-type = "lion"] [ ; Asks all turtles of type "lion" to perform the following actions
+    let prey-to-hunt other turtles-here with [animal-type = "cow"] ; Finds nearby cows
+    if any? prey-to-hunt [                  ; Checks if there are any cows nearby
+      let nearest-prey min-one-of prey-to-hunt [distance myself] ; Finds the nearest cow
+      face nearest-prey                     ; Faces towards the nearest cow
+      if distance nearest-prey < 1 [         ; Checks if the lion is close enough to the cow
+        ask nearest-prey [die]              ; Kills the cow
+      ]
+      fd 1                                   ; Moves forward by 1 step
+    ]
+    if not any? prey-to-hunt [               ; If there are no cows nearby
+      fd 1                                   ; Move forward by 1 step (roaming behavior)
+    ]
+  ]
+end
+
+to update-grass
+  let brown-patches patches with [pcolor = brown] ; Finds all patches with brown color
+  let num-to-turn-green round (count brown-patches * 0.2) ; Calculates the number of brown patches to turn green
+
+  ; Randomly select brown patches to turn green
+  ask n-of num-to-turn-green brown-patches [
+    set pcolor green             ; Changes the color of selected patches to green
+  ]
+
+  ; Increment grass size parameter on green turtles
+  ask turtles-on patches with [pcolor = green] [
+    set taille-plante (taille-plante + 1) ; Increases the grass size parameter
+  ]
+
+  ; Check for turtles on green patches where grass size parameter reaches 0 and turn their patch brown again
+  ask turtles-on patches with [pcolor = green] [
+    if taille-plante <= 0 [               ; Checks if the grass size parameter reaches 0
+      set pcolor brown                   ; Changes the color of the patch to brown
+      set taille-plante (random 3) + 3   ; Sets a random initial grass size parameter
+    ]
+  ]
+end
