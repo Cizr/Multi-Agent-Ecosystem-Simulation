@@ -16,6 +16,8 @@ Procedures in NetLogo allow users to instruct agents using commands and reporter
 ## Our Goal (Creation of a Multi-Agent Base System)
 Our system is a multi-agent-based simulation environment built in NetLogo, simulating the dynamics of an ecosystem with grass patches, cows, lions, a bull, and a dog. The simulation aims to provide a platform for studying agent interactions and ecosystem dynamics.
 
+![Capture_decran_2024-04-30_141229](https://github.com/Cizr/Multi-Agent-Ecosystem-Simulation/assets/100844208/11ede0ee-77c5-4dec-b2bb-c05d567e3feb)
+
 ## How to Use NetLogo
 1. **Installation**: Download and install NetLogo from the [official website](https://ccl.northwestern.edu/netlogo/).
 2. **Model Creation**: Define agents, procedures, and variables to create the desired simulation.
