@@ -27,7 +27,7 @@ Our system is a multi-agent-based simulation environment built in NetLogo, simul
 - **Predator-Prey Interactions**: Lions hunt and consume cows for food, while the bull and cows graze on grass patches.
 - **Growth and Consumption of Grass**: Grass patches grow over time and are consumed by grazing animals.
 - **Dog-Lion Interaction**: Dogs may engage in fights with lions to protect the ecosystem, with varying outcomes.
-- 
+  
 ## Read More
 You can read more about this simulation and its development process [here]([https://medium.com/multi-agent-ecosystem-simulation](https://medium.com/@benkaddourmed54/creating-a-multi-agent-base-system-with-netlogo-e0556eef8357)).
 
